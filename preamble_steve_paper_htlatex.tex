@@ -1,0 +1,75 @@
+\usepackage{tex4ht}
+
+\title{\ititle\\\isubtitle}
+\author{\iauthor\\<{\iemail}>}
+
+%\usepackage[a4paper]{geometry} % see geometry.pdf
+
+%non-xelatex
+%\usepackage[T1]{fontenc}
+%\usepackage{tgpagella}
+
+%get the font here:
+% http://scripts.sil.org/CharisSILfont
+
+%hyperlinks and pdf metadata
+%TODO avoid duplication of title & author
+%disabled because htlatex does this
+%\usepackage{hyperref}
+%\hypersetup{pdfborder={0 0 0}}
+%\hypersetup{pdfauthor={\iauthor}}
+%\hypersetup{pdftitle={\ititle\isubtitle}}
+
+
+%handles references to labels (e.g. sections) nicely
+\usepackage{varioref}
+
+%line spacing
+\usepackage{setspace}
+%\onehalfspacing
+%\doublespacing
+\singlespacing
+
+\usepackage{natbib}
+\setcitestyle{aysep={}}  %philosophy style: no comma between author & year
+
+%enable notes in right margin, defaults to ugly orange boxes TODO fix
+%\usepackage[textwidth=5cm]{todonotes}
+
+%for comments
+\usepackage{verbatim}
+
+%footnotes
+%\usepackage[hang]{footmisc}
+%\setlength{\footnotemargin}{1em}
+%\setlength{\footnotesep}{1em}
+%\footnotesep 2em
+
+%tables
+\usepackage{booktabs}
+\usepackage{ctable}
+
+%section headings
+%\usepackage[small]{titlesec}
+%\titlelabel{\thetitle.\quad}
+%\titlespacing*{\section}{0pt}{*3}{*0.5} %reduce vertical space after header
+
+
+%lists
+%\usepackage{enumitem}
+\newenvironment{idescription}
+{ 	
+	% begin code
+	\begin{description}[
+		labelindent=1.5\parindent,
+		leftmargin=2.5\parindent
+	]
+}
+{ 
+	%end code
+	\end{description}
+}
+
+
+%title
+%removed for htlatex

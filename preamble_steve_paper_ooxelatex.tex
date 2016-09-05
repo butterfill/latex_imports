@@ -1,0 +1,76 @@
+
+\title{\ititle\\\isubtitle}
+\author{\iauthor\\\ \iemail}
+
+\usepackage[a4paper]{geometry} % see geometry.pdf
+%\geometry{twoside=false}
+%\geometry{headsep=2em} %keep running header away from text
+%\geometry{footskip=1cm} %keep page numbers away from text
+%\geometry{top=3cm} %increase to 3.5 if use header
+%\geometry{left=4cm} %increase to 3.5 if use header
+%\geometry{right=4cm} %increase to 3.5 if use header
+%\geometry{textheight=22cm}
+
+
+
+%hyperlinks and pdf metadata
+% ooxelatex generates errors thf. disabled
+%\usepackage{hyperref}
+%\hypersetup{pdfborder={0 0 0}}
+%\hypersetup{pdfauthor={\iauthor}}
+%\hypersetup{pdftitle={\ititle\isubtitle}}
+
+
+%handles references to labels (e.g. sections) nicely
+\usepackage{varioref}
+
+%line spacing
+\usepackage{setspace}
+%\onehalfspacing
+%\doublespacing
+%\singlespacing
+
+\usepackage{natbib}
+\setcitestyle{aysep={}}  %philosophy style: no comma between author & year
+
+%enable notes in right margin, defaults to ugly orange boxes TODO fix
+%\usepackage[textwidth=5cm]{todonotes}
+
+%for comments
+\usepackage{verbatim}
+
+%footnotes
+% disabled for oolatex
+%\usepackage[hang]{footmisc}
+%\setlength{\footnotemargin}{1em}
+%\setlength{\footnotesep}{1em}
+%\footnotesep 2em
+
+%tables
+\usepackage{booktabs}
+\usepackage{ctable}
+
+%section headings
+\usepackage[small]{titlesec}
+\titlelabel{\thetitle.\quad}
+%\titlespacing*{\section}{0pt}{*3}{*0.5} %reduce vertical space after header
+
+
+%lists
+\usepackage{enumitem}
+\newenvironment{idescription}
+{ 	
+	% begin code
+	\begin{description}[
+		labelindent=1.5\parindent,
+		leftmargin=2.5\parindent
+	]
+}
+{ 
+	%end code
+	\end{description}
+}
+
+
+%title
+%removed for oolatex
