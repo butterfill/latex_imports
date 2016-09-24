@@ -1,0 +1,232 @@
+%!TEX encoding = UTF-8 Unicode
+
+\usepackage[LY1]{fontenc}
+\usepackage[utf8]{inputenc}
+
+% allow includegraphics file names with .neg.png etc
+\usepackage[multidot]{grffile}
+
+% because inputenc can’t cope with certain characters (these can be in bibliographic entries)
+\DeclareUnicodeCharacter{00A0}{ }
+\DeclareUnicodeCharacter{2010}{-}
+
+\title{\ititle\\\isubtitle}
+\author{\iauthor\\<{\iemail}>}
+
+\usepackage[\papersize,twoside=true,hmarginratio=1:1]{geometry} % see geometry.pdf
+% \geometry{headsep=2em} %keep running header away from text
+% \geometry{footskip=1cm} %keep page numbers away from text
+% \geometry{top=3cm} %increase to 3.5 if use header
+\geometry{left=4cm}
+\geometry{right=4cm}
+% \geometry{textheight=22cm}
+
+% - non-xelatex
+\usepackage{libertine}
+
+\usepackage[protrusion=true]{microtype}
+%for underline
+\usepackage[normalem]{ulem}
+
+
+% — language settings
+%% - xetex only
+%\usepackage{polyglossia}
+%\setdefaultlanguage[variant=uk]{english}
+% - pdftex
+\usepackage[british]{babel}
+
+
+% —line spacing
+% \usepackage{setspace}
+% %\onehalfspacing
+% %\doublespacing
+% \singlespacing
+
+
+% — bibliography stuff …
+
+\usepackage[autostyle]{csquotes}
+
+\usepackage[authordate,natbib,isbn=false,backend=biber,sorting=ynt,sortcites=true]{biblatex-chicago}
+% \usepackage[style=apa,natbib=true,backend=biber]{biblatex}
+% stupid atom can't read $HOME paths
+%\bibliography{$HOME/endnote/phd_biblio.bib}
+\bibliography{/Users/arcadia/endnote/phd_biblio.bib}
+
+%\usepackage[longnamesfirst]{natbib}
+%\setcitestyle{aysep={}}  %philosophy style: no comma between author & year
+
+% biblatex only http://tex.stackexchange.com/questions/147749/excessive-fields-in-biblatex-chicago-author-date-style
+\AtEveryBibitem{%
+  \clearlist{language}
+  \ifentrytype{online}
+    {}
+    {
+      \clearfield{url}
+      \clearfield{urlyear}
+      \clearfield{urlmonth}
+      \clearfield{urlday}
+    }
+}
+
+%% for urls (including dois) in bibliography
+%% http://www.kronto.org/thesis/tips/url-formatting.html
+\usepackage{url}
+%% Define a new 'leo' style for the package that will use a smaller font.
+\makeatletter
+\def\url@leostyle{%
+  \@ifundefined{selectfont}{\def\UrlFont{\sf}}{\def\UrlFont{\small\ttfamily}}}
+\makeatother
+%% Now actually use the newly defined style.
+\urlstyle{leo}
+
+
+%enable notes in right margin, defaults to ugly orange boxes TODO fix
+%\usepackage[textwidth=5cm]{todonotes}
+
+%for comments
+\usepackage{verbatim}
+
+%footnotes
+\usepackage[hang,bottom,stable]{footmisc}
+% no space between multiple paragraphs  in footnote
+\renewcommand{\hangfootparskip}{0em}
+% multiple paragraphs  in footnote are indented by 1em
+\renewcommand{\hangfootparindent}{1em}
+\setlength{\footnotemargin}{1em}
+\setlength{\footnotesep}{1em}
+\footnotesep 2em
+
+%tables
+\usepackage{booktabs}
+\usepackage{ctable}
+\usepackage{array} %allows m columns in tables (paragraph, vertically centered)
+\usepackage{tabu}
+
+%section headings
+\usepackage[rm]{titlesec} %sf for sans, rm for roman
+%\titlespacing*{\section}{0pt}{*3}{*0.5} %reduce vertical space after header
+%large headings:
+%\titleformat{\section}{\LARGE\sffamily}{\thesection.}{1em}{}
+\titlelabel{\thetitle.\quad} %make dot after section number
+
+%captions
+\usepackage[font={small,rm}, margin=0.75cm]{caption}
+
+%lists
+\usepackage{enumitem}
+\newenvironment{idescription}
+{
+	% begin code
+	\begin{description}[
+		labelindent=1.5\parindent,
+		leftmargin=2.5\parindent
+	]
+}
+{
+	%end code
+	\end{description}
+}
+
+
+%title
+\usepackage{titling}
+\pretitle{
+	\begin{center}
+	%\sffamily %for sans title
+	\Huge % \LARGE %
+}
+\posttitle{
+	\par
+	\end{center}
+	\vskip 0.5em
+}
+\preauthor{
+	\begin{center}
+	\normalsize
+	\lineskip 0.5em
+	\begin{tabular}[t]{c}
+}
+\postauthor{
+	\end{tabular}
+	\par
+	\end{center}
+}
+\predate{
+	\begin{center}
+	\normalsize
+}
+\postdate{
+	\par
+	\end{center}
+}
+
+
+% — varioref before hyperref
+%handles references to labels (e.g. sections) nicely
+\usepackage{varioref}
+
+%hyperlinks and pdf metadata
+\usepackage{hyperref}
+\hypersetup{pdfborder={0 0 0}}
+\hypersetup{pdfauthor={\iauthor}}
+\hypersetup{pdftitle={\ititle\isubtitle}}
+
+%handles references to labels (e.g. sections) nicely
+% — cleverref after hyperref (see http://tex.stackexchange.com/questions/244981/subequations-with-varioref-and-cleverref)
+\usepackage{cleveref}
+\crefname{figure}{figure}{figures}
+\crefname{chapter}{Chapter}{Chapters}
+
+
+
+
+
+%comment these out if not anonymous:
+%\author{}
+%\date{}
+
+
+%for e reader version: small margins
+% (remove all for paper!)
+%\geometry{headsep=2em} %keep running header away from text
+%\geometry{footskip=1.5cm} %keep page numbers away from text
+%\geometry{top=1cm} %increase to 3.5 if use header
+%\geometry{bottom=2cm} %increase to 3.5 if use header
+%\geometry{left=1cm} %increase to 3.5 if use header
+%\geometry{right=1cm} %increase to 3.5 if use header
+
+
+%avoid overhang
+\tolerance=5000
+
+
+%\usepackage[usenames,dvipsnames,svgnames]{xcolor}
+%\usepackage[inline,marginclue,index]{fixme}
+%\fxsetup{theme=color,mode=multiuser}
+%\FXRegisterAuthor{sb}{asb}{\color{Sepia}Steve}
+%\FXRegisterAuthor{cs}{acs}{\color{purple}Corrado}
+
+
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+%\lhead{\footnotesize \textsc{Butterfill}}
+%\lhead{\footnotesize \sc}
+%\rhead{\footnotesize \textsc{\ititle}}
+
+\fancyhead{}
+\fancyfoot{}
+\fancyfoot[RO]{\footnotesize \textit{Butterfill}  · \  \thepage}
+\fancyfoot[LE]{\footnotesize \thepage  \ \ · \  \textit{\ititle}}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+
+\fancypagestyle{plain}
+{
+   \fancyhf{}
+   \fancyfoot[C]{\footnotesize \thepage}
+}
+
+% for matrices
+\usepackage{amsmath}
