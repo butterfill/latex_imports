@@ -36,14 +36,14 @@
 %get the font here:
 % http://scripts.sil.org/CharisSILfont
 
-\defaultfontfeatures{Mapping=tex-text}
-%\setromanfont[Mapping=tex-text]{Linux Libertine O}
-%\setromanfont[Mapping=tex-text]{Charis SIL} %i.e. palatino
-%\setromanfont[Mapping=tex-text]{Sabon LT Std}
-\setromanfont[Mapping=tex-text,Ligatures={Common}]{Hoefler Text} %comes with osx
-%\setsansfont[Scale=MatchLowercase,Mapping=tex-text,UprightFont=Delicious-Roman,BoldFont=Delicious-Bold,ItalicFont=Delicious-Italic, BoldItalicFont=Delicious-BoldItalic,SmallCapsFont=Delicious-SmallCaps]{Delicious}
-\setmonofont[Scale=MatchLowercase]{Andale Mono}
-
+% \defaultfontfeatures{Mapping=tex-text}
+% %\setromanfont[Mapping=tex-text]{Linux Libertine O}
+% %\setromanfont[Mapping=tex-text]{Charis SIL} %i.e. palatino
+% %\setromanfont[Mapping=tex-text]{Sabon LT Std}
+% \setromanfont[Mapping=tex-text,Ligatures={Common}]{Hoefler Text} %comes with osx
+% %\setsansfont[Scale=MatchLowercase,Mapping=tex-text,UprightFont=Delicious-Roman,BoldFont=Delicious-Bold,ItalicFont=Delicious-Italic, BoldItalicFont=Delicious-BoldItalic,SmallCapsFont=Delicious-SmallCaps]{Delicious}
+% \setmonofont[Scale=MatchLowercase]{Andale Mono}
+%
 
 %hyperlinks and pdf metadata
 %TODO avoid duplication of title & author
@@ -62,10 +62,15 @@
 %\doublespacing
 \singlespacing
 
-\usepackage[]{natbib}
+
+ \usepackage[authordate,natbib,isbn=false,backend=biber,sorting=ynt,sortcites=true]{biblatex-chicago}
+%\usepackage[style=apa,natbib=true,backend=biber]{biblatex}
+\bibliography{/Users/stephenbutterfill/endnote/phd_biblio}
+
+%\usepackage[]{natbib}
 %swap for the following if have papers with similar first author & year
 %\usepackage[longnamesfirst]{natbib}
-\setcitestyle{aysep={}}  %philosophy style: no comma between author & year
+% \setcitestyle{aysep={}}  %philosophy style: no comma between author & year
 
 %enable notes in right margin, defaults to ugly orange boxes TODO fix
 %\usepackage[textwidth=5cm]{todonotes}
