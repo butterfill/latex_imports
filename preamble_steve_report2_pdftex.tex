@@ -1,0 +1,129 @@
+% non-xetex version
+
+\usepackage[utf8]{inputenc}
+
+% allow includegraphics file names with .neg.png etc
+\usepackage[multidot]{grffile}
+
+% because inputenc can’t cope with certain characters (these can be in bibliographic entries)
+\DeclareUnicodeCharacter{00A0}{ }
+\DeclareUnicodeCharacter{2010}{-}
+
+\title{\ititle\\\isubtitle}
+\author{\iauthor\\<{\iemail}>}
+
+
+\usepackage[\papersize]{geometry} % see geometry.pdf
+\geometry{twoside=false}
+\geometry{headsep=2em} %keep running header away from text
+\geometry{footskip=1cm} %keep page numbers away from text
+%\geometry{top=3cm} %increase to 3.5 if use header
+%\geometry{left=4cm} %increase to 3.5 if use header
+%\geometry{right=4cm} %increase to 3.5 if use header
+%\geometry{textheight=22cm}
+
+%non-xelatex
+\usepackage[T1]{fontenc}
+\usepackage{tgpagella}
+
+\usepackage[protrusion=true]{microtype}
+%for underline
+\usepackage[normalem]{ulem}
+
+% - pdftex
+\usepackage[british]{babel}
+
+%get the font here:
+% http://scripts.sil.org/CharisSILfont
+
+%hyperlinks and pdf metadata
+%TODO avoid duplication of title & author
+\usepackage{hyperref}
+\hypersetup{pdfborder={0 0 0}}
+\hypersetup{pdfauthor={\iauthor}}
+\hypersetup{pdftitle={\ititle\isubtitle}}
+
+
+%handles references to labels (e.g. sections) nicely
+\usepackage{varioref}
+
+%line spacing
+\usepackage{setspace}
+%\onehalfspacing
+%\doublespacing
+\singlespacing
+
+\usepackage[]{natbib}
+%swap for the following if have papers with similar first author & year
+%\usepackage[longnamesfirst]{natbib}
+\setcitestyle{aysep={}}  %philosophy style: no comma between author & year
+
+%enable notes in right margin, defaults to ugly orange boxes TODO fix
+%\usepackage[textwidth=5cm]{todonotes}
+
+%for comments
+\usepackage{verbatim}
+
+%footnotes
+\usepackage[hang]{footmisc}
+\setlength{\footnotemargin}{1em}
+\setlength{\footnotesep}{1em}
+\footnotesep 2em
+
+%tables
+\usepackage{booktabs}
+\usepackage{ctable}
+
+%section headings
+\usepackage[small]{titlesec}
+\titlelabel{\thetitle.\quad}
+%\titlespacing*{\section}{0pt}{*3}{*0.5} %reduce vertical space after header
+
+
+%lists
+\usepackage{enumitem}
+\newenvironment{idescription}
+{
+	% begin code
+	\begin{description}[
+		labelindent=1.5\parindent,
+		leftmargin=2.5\parindent
+	]
+}
+{
+	%end code
+	\end{description}
+}
+
+
+%title
+\usepackage{titling}
+\pretitle{
+	\begin{center}
+	%\sffamily
+	\Large
+}
+\posttitle{
+	\par
+	\end{center}
+	\vskip 0.5em
+}
+\preauthor{
+	\begin{center}
+	\normalsize
+	\lineskip 0.5em
+	\begin{tabular}[t]{c}
+}
+\postauthor{
+	\end{tabular}
+	\par
+	\end{center}
+}
+\predate{
+	\begin{center}
+	\normalsize
+}
+\postdate{
+	\par
+	\end{center}
+}
