@@ -1,0 +1,14 @@
+sudo tlmgr install ...
+
+to install as required: texliveonfly (doesn’t seem to work)
+
+varwidth ly1 libertine mweights mktexlsr fontaxes csquotes biblatex-chicago biblatex logreq xstring footmisc tabu wrapfig xunicode hyperref 
+
+setspace natbib  footmisc booktabs  ctable  titlesec enumitem titling  ulem cleveref
+
+todonotes  microtype babel url  caption  xcolor fixme fancyhdr amsmath glossaries parskip 
+
+xfor mfirstuc  datatool substr
+
+NOT PRESENT IN REPOSITORY : 
+varioref verbatim multicol array bibentry  grffile
