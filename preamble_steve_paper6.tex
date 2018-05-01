@@ -17,14 +17,14 @@
 % \geometry{headsep=2em} %keep running header away from text
 % \geometry{footskip=1cm} %keep page numbers away from text
 % \geometry{top=3cm} %increase to 3.5 if use header
-\geometry{left=4cm} 
+\geometry{left=4cm}
 \geometry{right=4cm}
 % \geometry{textheight=22cm}
 
 % - non-xelatex
 \usepackage{libertine}
 
-\usepackage[protrusion=true]{microtype}	
+\usepackage[protrusion=true]{microtype}
 %for underline
 \usepackage[normalem]{ulem}
 
@@ -48,8 +48,8 @@
 
 \usepackage[autostyle]{csquotes}
 
-\usepackage[authordate,natbib,isbn=false,backend=biber,sorting=ynt,sortcites=true]{biblatex-chicago} 
-% \usepackage[style=apa,natbib=true,backend=biber]{biblatex}  
+\usepackage[authordate,natbib,isbn=false,backend=biber,sorting=ynt,sortcites=true,giveninits=true]{biblatex-chicago} 
+% \usepackage[style=apa,natbib=true,backend=biber]{biblatex}
 \bibliography{/Users/stephenbutterfill/endnote/phd_biblio}
 
 %\usepackage[longnamesfirst]{natbib}
@@ -106,7 +106,7 @@
 \usepackage[rm]{titlesec} %sf for sans, rm for roman
 %\titlespacing*{\section}{0pt}{*3}{*0.5} %reduce vertical space after header
 %large headings:
-%\titleformat{\section}{\LARGE\sffamily}{\thesection.}{1em}{} 
+%\titleformat{\section}{\LARGE\sffamily}{\thesection.}{1em}{}
 \titlelabel{\thetitle.\quad} %make dot after section number
 
 %captions
@@ -115,14 +115,14 @@
 %lists
 \usepackage{enumitem}
 \newenvironment{idescription}
-{ 	
+{
 	% begin code
 	\begin{description}[
 		labelindent=1.5\parindent,
 		leftmargin=2.5\parindent
 	]
 }
-{ 
+{
 	%end code
 	\end{description}
 }
@@ -134,18 +134,18 @@
 	\begin{center}
 	%\sffamily %for sans title
 	\Huge % \LARGE %
-} 
+}
 \posttitle{
 	\par
 	\end{center}
 	\vskip 0.5em
-} 
+}
 \preauthor{
 	\begin{center}
 	\normalsize
 	\lineskip 0.5em
 	\begin{tabular}[t]{c}
-} 
+}
 \postauthor{
 	\end{tabular}
 	\par
@@ -154,7 +154,7 @@
 \predate{
 	\begin{center}
 	\normalsize
-} 
+}
 \postdate{
 	\par
 	\end{center}
