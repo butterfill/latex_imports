@@ -1,0 +1,101 @@
+% !TEX encoding = UTF-8 Unicode
+
+% — create warnings about outdated stuff
+%\RequirePackage[l2tabu, orthodox]{nag}
+
+%\def \papersize {a5paper}
+\def \papersize {a4paper}
+%\def \papersize {letterpaper}
+
+%\documentclass[14pt,\papersize]{extarticle}
+\documentclass[12pt,\papersize,twoside]{article}
+%\usepackage[\papersize,pagesize,DIV=8]{typearea}
+% extarticle is like article but can handle 8pt, 9pt, 10pt, 11pt, 12pt, 14pt, 17pt, and 20pt text
+
+\def \ititle{Motor Representation and Action Experience in Joint Action}
+%comment some of the following out depending on whether anonymous
+\def \isubtitle{}
+\def \iauthor{Stephen A.\ Butterfill %\\ University of Warwick, UK
+}
+\def \iemail{s.butterfill@warwick.ac.uk}
+%\def \iauthor {}
+%\def \iemail{}
+\date{}
+
+
+\input{$HOME\latex_imports\preamble_steve_paper6}
+%comment these out if not anonymous:
+%\author{}
+%\date{}
+
+
+%for e reader version: small margins
+% (remove all for paper!)
+%\geometry{headsep=2em} %keep running header away from text
+%\geometry{footskip=1.5cm} %keep page numbers away from text
+%\geometry{top=1cm} %increase to 3.5 if use header
+%\geometry{bottom=2cm} %increase to 3.5 if use header
+%\geometry{left=1cm} %increase to 3.5 if use header
+%\geometry{right=1cm} %increase to 3.5 if use header
+
+
+%avoid overhang
+\tolerance=5000
+
+
+%\usepackage[usenames,dvipsnames,svgnames]{xcolor}
+%\usepackage[inline,marginclue,index]{fixme}
+%\fxsetup{theme=color,mode=multiuser}
+%\FXRegisterAuthor{sb}{asb}{\color{Sepia}Steve}
+%\FXRegisterAuthor{cs}{acs}{\color{purple}Corrado}
+
+
+
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+%\lhead{\footnotesize \textsc{Sinigaglia \& Butterfill}}
+%\lhead{\footnotesize \sc}
+%\rhead{\footnotesize \textsc{\ititle}}
+
+\fancyhead{}
+\fancyfoot{}
+\fancyfoot[RO]{\footnotesize \textit{Sinigaglia \& Butterfill}  · \  \thepage}
+\fancyfoot[LE]{\footnotesize \thepage  \ \ · \  \textit{\ititle}}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+
+\fancypagestyle{plain}
+{
+   \fancyhf{}
+   \fancyfoot[C]{\footnotesize \thepage}
+}
+
+% for matrices
+\usepackage{amsmath}
+
+
+
+\begin{document}
+
+
+\setlength\footnotesep{1em}
+
+
+%\tableofcontents
+
+% remove headers and footers on first page only
+% \thispagestyle{firststyle}
+
+
+% ------ PASTE START
+
+
+% ------ PASTE END
+
+
+\begin{refcontext}[sorting=nyt]
+\printbibliography
+\end{refcontext}
+
+
+\end{document}
