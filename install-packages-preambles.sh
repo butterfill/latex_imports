@@ -43,15 +43,58 @@ if [[ ${#latex_pkgs[@]} -eq 0 ]]; then
 fi
 log "Found ${#latex_pkgs[@]} unique LaTeX package name(s)"
 
-# Resolve a style/class filename to the owning tlmgr package.
-resolve_owner_pkg() {
-  local needle="$1"
-  local out
-  # Typical output has lines like "pkgname:" followed by file paths.
-  out="$(tlmgr search --global --file "$needle" 2>/dev/null || true)"
-  awk -F: '/^[[:alnum:]][^[:space:]]*:$/ {print $1}' <<<"$out" \
-    | grep -Ev '^(collection-|scheme-)' \
-    | head -n1
+# Map LaTeX package names used in these preambles to TeX Live package names.
+# This avoids slow/hanging global tlmgr searches during resolution.
+map_latex_to_tlpkg() {
+  local lpkg="$1"
+  case "$lpkg" in
+    amsmath) echo "amsmath" ;;
+    array|multicol|varioref|verbatim) echo "tools" ;;
+    babel) echo "babel" ;;
+    biblatex-chicago) echo "biblatex-chicago" ;;
+    booktabs) echo "booktabs" ;;
+    caption) echo "caption" ;;
+    cleveref) echo "cleveref" ;;
+    csquotes) echo "csquotes" ;;
+    ctable) echo "ctable" ;;
+    enumitem) echo "enumitem" ;;
+    fancyhdr) echo "fancyhdr" ;;
+    fontenc|inputenc) echo "latex" ;;
+    fontspec) echo "fontspec" ;;
+    footmisc) echo "footmisc" ;;
+    geometry) echo "geometry" ;;
+    grffile) echo "grffile" ;;
+    hyperref) echo "hyperref" ;;
+    libertine) echo "libertine" ;;
+    microtype) echo "microtype" ;;
+    natbib) echo "natbib" ;;
+    setspace) echo "setspace" ;;
+    tabu) echo "tabu" ;;
+    tex4ht) echo "tex4ht" ;;
+    tgpagella) echo "tgpagella" ;;
+    titlesec) echo "titlesec" ;;
+    titling) echo "titling" ;;
+    ulem) echo "ulem" ;;
+    url) echo "url" ;;
+    wrapfig) echo "wrapfig" ;;
+    xunicode) echo "xunicode" ;;
+    *)
+      # Safe fallback: many LaTeX package names equal tlmgr names.
+      echo "$lpkg"
+      ;;
+  esac
+}
+
+resolve_tlmgr_candidate() {
+  local name="$1"
+  case "$name" in
+    graphicx) echo "graphics" ;;
+    longtable) echo "tools" ;;
+    ifxetex|ifluatex) echo "iftex" ;;
+    zapfding) echo "psnfss" ;;
+    bibtex) echo "bibtex" ;;
+    *) echo "$name" ;;
+  esac
 }
 
 # Add unique values to an array by name.
@@ -75,17 +118,7 @@ idx=0
 for lpkg in "${latex_pkgs[@]}"; do
   idx=$((idx + 1))
   log "[resolve ${idx}/${total_latex_pkgs}] ${lpkg}"
-  owner="$(resolve_owner_pkg "/${lpkg}.sty")"
-
-  # A few entries may be classes in some setups.
-  if [[ -z "$owner" ]]; then
-    owner="$(resolve_owner_pkg "/${lpkg}.cls")"
-  fi
-
-  # Last resort: package name matches tlmgr package name.
-  if [[ -z "$owner" ]] && tlmgr info "$lpkg" >/dev/null 2>&1; then
-    owner="$lpkg"
-  fi
+  owner="$(map_latex_to_tlpkg "$lpkg")"
 
   if [[ -n "$owner" ]]; then
     add_unique resolved_tl_pkgs "$owner"
@@ -100,12 +133,37 @@ done
 # - biblatex-chicago is configured with backend=biber
 # - fontenc uses LY1 in some preambles
 add_unique resolved_tl_pkgs "biber"
-ly1_owner="$(resolve_owner_pkg "/ly1enc.def")"
-if [[ -n "$ly1_owner" ]]; then
-  add_unique resolved_tl_pkgs "$ly1_owner"
-else
-  add_unique resolved_tl_pkgs "ly1"
-fi
+add_unique resolved_tl_pkgs "ly1"
+
+# Additional packages explicitly requested by user.
+requested_candidates=(
+  amsfonts amsmath
+  babel
+  geometry graphicx xcolor
+  fancyvrb
+  longtable booktabs multirow
+  csquotes
+  iftex ifxetex ifluatex
+  lm unicode-math fontspec
+  listings
+  bibtex biblatex biber
+  collection-xetex
+  microtype parskip xurl upquote
+  footnotehyper unicode-math zapfding
+)
+
+log "Resolving user-requested extra package names..."
+unavailable_requested=()
+for req in "${requested_candidates[@]}"; do
+  mapped_req="$(resolve_tlmgr_candidate "$req")"
+  if tlmgr info "$mapped_req" >/dev/null 2>&1; then
+    add_unique resolved_tl_pkgs "$mapped_req"
+    log "[requested] ${req} -> ${mapped_req}"
+  else
+    add_unique unavailable_requested "$req"
+    log "[requested] unavailable in tlmgr repo: ${req}"
+  fi
+done
 
 # Optional but often needed with fontspec workflows.
 if tlmgr info xetex >/dev/null 2>&1; then
@@ -127,6 +185,12 @@ if [[ ${#unresolved_latex_pkgs[@]} -gt 0 ]]; then
   echo
   echo "Warning: could not auto-resolve these LaTeX package names (check manually if compile fails):" >&2
   printf '  %s\n' "${unresolved_latex_pkgs[@]}" >&2
+fi
+
+if [[ ${#unavailable_requested[@]} -gt 0 ]]; then
+  echo
+  echo "Warning: user-requested names unavailable in current tlmgr repository:" >&2
+  printf '  %s\n' "${unavailable_requested[@]}" >&2
 fi
 
 echo
