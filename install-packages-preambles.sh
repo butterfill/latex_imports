@@ -4,19 +4,27 @@ set -euo pipefail
 # Install TeX Live packages required by the LaTeX preambles in this directory.
 # It resolves \usepackage entries to owning tlmgr packages automatically.
 
+log() {
+  printf '[%s] %s\n' "$(date '+%H:%M:%S')" "$*"
+}
+
 if ! command -v tlmgr >/dev/null 2>&1; then
   echo "Error: tlmgr not found in PATH. Install MacTeX/basicTeX first." >&2
   exit 1
 fi
+log "Found tlmgr: $(command -v tlmgr)"
 
 # Find candidate preamble files plus a minimal test doc if present.
+log "Scanning for preamble files..."
 mapfile -t tex_files < <(find . -maxdepth 1 -type f \( -name 'preamble*.tex' -o -name 'minimal_doc.tex' \) | sort)
 if [[ ${#tex_files[@]} -eq 0 ]]; then
   echo "Error: no preamble*.tex files found in $(pwd)" >&2
   exit 1
 fi
+log "Found ${#tex_files[@]} TeX file(s)"
 
 # Extract package names from \usepackage{...} and \RequirePackage{...}.
+log "Extracting \\usepackage and \\RequirePackage names..."
 mapfile -t latex_pkgs < <(
   perl -ne '
     s/%.*$//;
@@ -33,6 +41,7 @@ if [[ ${#latex_pkgs[@]} -eq 0 ]]; then
   echo "Error: no \\usepackage entries found in: ${tex_files[*]}" >&2
   exit 1
 fi
+log "Found ${#latex_pkgs[@]} unique LaTeX package name(s)"
 
 # Resolve a style/class filename to the owning tlmgr package.
 resolve_owner_pkg() {
@@ -60,7 +69,12 @@ add_unique() {
 resolved_tl_pkgs=()
 unresolved_latex_pkgs=()
 
+log "Resolving LaTeX package names to TeX Live packages..."
+total_latex_pkgs=${#latex_pkgs[@]}
+idx=0
 for lpkg in "${latex_pkgs[@]}"; do
+  idx=$((idx + 1))
+  log "[resolve ${idx}/${total_latex_pkgs}] ${lpkg}"
   owner="$(resolve_owner_pkg "/${lpkg}.sty")"
 
   # A few entries may be classes in some setups.
@@ -75,8 +89,10 @@ for lpkg in "${latex_pkgs[@]}"; do
 
   if [[ -n "$owner" ]]; then
     add_unique resolved_tl_pkgs "$owner"
+    log "[resolve ${idx}/${total_latex_pkgs}] ${lpkg} -> ${owner}"
   else
     add_unique unresolved_latex_pkgs "$lpkg"
+    log "[resolve ${idx}/${total_latex_pkgs}] ${lpkg} -> unresolved"
   fi
 done
 
@@ -104,7 +120,7 @@ fi
 # Stable install order for reproducibility.
 IFS=$'\n' read -r -d '' -a resolved_tl_pkgs < <(printf '%s\n' "${resolved_tl_pkgs[@]}" | sort -u && printf '\0')
 
-echo "Will install ${#resolved_tl_pkgs[@]} TeX Live packages:"
+log "Will install ${#resolved_tl_pkgs[@]} TeX Live package(s):"
 printf '  %s\n' "${resolved_tl_pkgs[@]}"
 
 if [[ ${#unresolved_latex_pkgs[@]} -gt 0 ]]; then
@@ -114,8 +130,26 @@ if [[ ${#unresolved_latex_pkgs[@]} -gt 0 ]]; then
 fi
 
 echo
-echo "Running: tlmgr install ..."
-tlmgr install "${resolved_tl_pkgs[@]}"
+log "Starting installation..."
+total_tl_pkgs=${#resolved_tl_pkgs[@]}
+i=0
+failed=()
+for pkg in "${resolved_tl_pkgs[@]}"; do
+  i=$((i + 1))
+  log "[install ${i}/${total_tl_pkgs}] ${pkg}"
+  if ! tlmgr install "$pkg"; then
+    failed+=("$pkg")
+    log "[install ${i}/${total_tl_pkgs}] FAILED: ${pkg}"
+  else
+    log "[install ${i}/${total_tl_pkgs}] OK: ${pkg}"
+  fi
+done
 
 echo
-echo "Done."
+if [[ ${#failed[@]} -gt 0 ]]; then
+  log "Finished with ${#failed[@]} failure(s):"
+  printf '  %s\n' "${failed[@]}" >&2
+  exit 1
+fi
+
+log "Done."
