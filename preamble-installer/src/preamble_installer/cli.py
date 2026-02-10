@@ -25,6 +25,11 @@ class InstallResult:
     detail: str
 
 
+def is_tlpdb_error(detail: str) -> bool:
+    lowered = detail.lower()
+    return "texlive.tlpdb" in lowered or "could not get texlive.tlpdb" in lowered
+
+
 def strip_comments(line: str) -> str:
     return re.split(r"(?<!\\\\)%", line, maxsplit=1)[0]
 
@@ -89,6 +94,30 @@ def run_tlmgr_install(tlmgr_cmd: str, package: str, timeout_seconds: int) -> Ins
     return InstallResult(package=package, status="failed", detail=msg)
 
 
+def run_tlmgr_option_repository(tlmgr_cmd: str, repository: str, timeout_seconds: int) -> tuple[bool, str]:
+    cmd = [tlmgr_cmd, "option", "repository", repository]
+    try:
+        proc = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            timeout=timeout_seconds,
+            check=False,
+        )
+    except subprocess.TimeoutExpired:
+        return False, f"timed out after {timeout_seconds}s while setting repository"
+    except FileNotFoundError:
+        return False, f"command not found: {tlmgr_cmd}"
+
+    if proc.returncode == 0:
+        return True, "repository updated"
+
+    stderr = (proc.stderr or "").strip()
+    stdout = (proc.stdout or "").strip()
+    msg = stderr if stderr else stdout if stdout else f"exit code {proc.returncode}"
+    return False, msg
+
+
 @app.command()
 def main(
     config: Path | None = typer.Option(None, "--config", "-c", help="Path to YAML config"),
@@ -109,6 +138,9 @@ def main(
     tex_globs = settings.get("tex_globs", ["../preamble*.tex", "../minimal_doc.tex"])
     tlmgr_cmd = settings.get("tlmgr_command", "tlmgr")
     install_timeout = timeout if timeout is not None else int(settings.get("install_timeout_seconds", 180))
+    repo_switch_timeout = int(settings.get("repository_switch_timeout_seconds", 45))
+    repositories = settings.get("tlmgr_repositories", [])
+    auto_switch_repo = bool(settings.get("auto_switch_repository_on_tlpdb_error", True))
 
     latex_to_tlmgr = mappings.get("latex_to_tlmgr", {})
     requested_aliases = mappings.get("requested_aliases", {})
@@ -167,13 +199,49 @@ def main(
         f"\n[bold]Installing with:[/bold] {shlex.join([tlmgr_cmd, 'install', '<pkg>'])} (timeout {install_timeout}s/package)"
     )
 
+    if repositories:
+        primary_repo = str(repositories[0])
+        console.print(f"[bold]Repository:[/bold] attempting primary mirror: {primary_repo}")
+        ok, msg = run_tlmgr_option_repository(tlmgr_cmd, primary_repo, repo_switch_timeout)
+        if ok:
+            console.print(f"  [green]OK[/green] repository set to {primary_repo}")
+        else:
+            console.print(f"  [yellow]WARN[/yellow] could not set primary repository: {msg}")
+
     failures: list[InstallResult] = []
     timeouts: list[InstallResult] = []
+    current_repo_index = 0
 
     total = len(ordered_packages)
     for idx, pkg in enumerate(ordered_packages, start=1):
         console.print(f"[cyan][install {idx}/{total}][/cyan] {pkg}")
         result = run_tlmgr_install(tlmgr_cmd, pkg, install_timeout)
+
+        if (
+            result.status == "failed"
+            and auto_switch_repo
+            and repositories
+            and is_tlpdb_error(result.detail)
+            and current_repo_index + 1 < len(repositories)
+        ):
+            switched = False
+            while current_repo_index + 1 < len(repositories):
+                current_repo_index += 1
+                next_repo = str(repositories[current_repo_index])
+                console.print(
+                    f"  [yellow]Repository error detected[/yellow]; switching mirror to {next_repo} and retrying {pkg}"
+                )
+                ok, msg = run_tlmgr_option_repository(tlmgr_cmd, next_repo, repo_switch_timeout)
+                if not ok:
+                    console.print(f"  [yellow]WARN[/yellow] could not set repository {next_repo}: {msg}")
+                    continue
+                switched = True
+                console.print(f"  [green]OK[/green] repository set to {next_repo}")
+                result = run_tlmgr_install(tlmgr_cmd, pkg, install_timeout)
+                break
+
+            if not switched:
+                console.print("  [yellow]WARN[/yellow] no usable fallback repositories remained")
 
         if result.status == "ok":
             console.print(f"  [green]OK[/green] {pkg}")

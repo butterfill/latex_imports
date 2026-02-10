@@ -17,6 +17,7 @@ This installer:
 - parses preambles for `\usepackage` and `\RequirePackage`
 - maps names via `packages.yaml`
 - installs with per-package progress and timeout handling
+- can auto-switch `tlmgr` mirrors on `texlive.tlpdb` repository errors
 - lets you add/remove packages by editing YAML only
 
 ## Edit package definitions

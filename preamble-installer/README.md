@@ -27,6 +27,7 @@ uv run preamble-installer --config packages.yaml
 3. Maps LaTeX package names to `tlmgr` package names via YAML mappings.
 4. Adds configured inferred and requested extras.
 5. Installs each package one-by-one with progress and per-package timeout.
+6. If a `texlive.tlpdb` repository error occurs, it switches to the next configured mirror and retries.
 
 ## Edit packages (no code changes)
 
@@ -37,6 +38,9 @@ Open `packages.yaml` and edit:
 - `extras.inferred`: always include these.
 - `extras.requested`: your manual package list.
 - `settings.install_timeout_seconds`: timeout for each `tlmgr install` call.
+- `settings.tlmgr_repositories`: ordered mirror list for `tlmgr option repository`.
+- `settings.auto_switch_repository_on_tlpdb_error`: enable automatic fallback mirror switching.
+- `settings.repository_switch_timeout_seconds`: timeout for mirror switch command.
 
 After edits, verify:
 
