@@ -1,0 +1,89 @@
+version: 1
+
+settings:
+  tex_globs:
+    - "../preamble*.tex"
+    - "../minimal_doc.tex"
+  tlmgr_command: "tlmgr"
+  install_timeout_seconds: 180
+
+mappings:
+  latex_to_tlmgr:
+    amsmath: amsmath
+    array: tools
+    babel: babel
+    biblatex-chicago: biblatex-chicago
+    booktabs: booktabs
+    caption: caption
+    cleveref: cleveref
+    csquotes: csquotes
+    ctable: ctable
+    enumitem: enumitem
+    fancyhdr: fancyhdr
+    fontenc: latex
+    fontspec: fontspec
+    footmisc: footmisc
+    geometry: geometry
+    grffile: grffile
+    hyperref: hyperref
+    inputenc: latex
+    libertine: libertine
+    microtype: microtype
+    multicol: tools
+    natbib: natbib
+    setspace: setspace
+    tabu: tabu
+    tex4ht: tex4ht
+    tgpagella: tgpagella
+    titlesec: titlesec
+    titling: titling
+    ulem: ulem
+    url: url
+    varioref: tools
+    verbatim: tools
+    wrapfig: wrapfig
+    xunicode: xunicode
+
+  requested_aliases:
+    graphicx: graphics
+    longtable: tools
+    ifxetex: iftex
+    ifluatex: iftex
+    zapfding: psnfss
+
+extras:
+  inferred:
+    - biber
+    - ly1
+    - xetex
+
+  requested:
+    - amsfonts
+    - amsmath
+    - babel
+    - geometry
+    - graphicx
+    - xcolor
+    - fancyvrb
+    - longtable
+    - booktabs
+    - multirow
+    - csquotes
+    - iftex
+    - ifxetex
+    - ifluatex
+    - lm
+    - unicode-math
+    - fontspec
+    - listings
+    - bibtex
+    - biblatex
+    - biber
+    - collection-xetex
+    - microtype
+    - parskip
+    - xurl
+    - upquote
+    - footnotehyper
+    - unicode-math
+    - zapfding
