@@ -10,6 +10,7 @@ Use the YAML-driven tool in `preamble-installer/`.
 cd preamble-installer
 uv run preamble-installer --dry-run
 uv run preamble-installer
+uv run preamble-installer --verify-only
 ```
 
 This installer:

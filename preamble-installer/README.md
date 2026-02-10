@@ -18,6 +18,7 @@ Useful options:
 uv run preamble-installer --dry-run
 uv run preamble-installer --timeout 120
 uv run preamble-installer --config packages.yaml
+uv run preamble-installer --verify-only
 ```
 
 ## What it does
@@ -29,6 +30,7 @@ uv run preamble-installer --config packages.yaml
 5. Installs each package one-by-one with progress and per-package timeout.
 6. If a `texlive.tlpdb` repository error occurs, it switches to the next configured mirror and retries.
 7. Skips packages already installed (`tlmgr info --only-installed`) and re-checks installation after timeouts.
+8. Runs a final full verification pass so success means all target packages are installed.
 
 ## Edit packages (no code changes)
 

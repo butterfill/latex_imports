@@ -148,6 +148,11 @@ def main(
     tex_root: Path | None = typer.Option(None, help="Optional base dir for tex_globs; defaults to config dir"),
     timeout: int | None = typer.Option(None, help="Override install timeout seconds"),
     dry_run: bool = typer.Option(False, "--dry-run", help="Only print resolved package list"),
+    verify_only: bool = typer.Option(
+        False,
+        "--verify-only",
+        help="Do not install; only verify all resolved packages are installed",
+    ),
 ) -> None:
     if config is None:
         config_path = (Path(__file__).resolve().parents[2] / "packages.yaml").resolve()
@@ -218,6 +223,26 @@ def main(
 
     if dry_run:
         console.print("\n[green]Dry run complete.[/green]")
+        return
+
+    if verify_only:
+        console.print("\n[bold]Verifying installed state only...[/bold]")
+        missing: list[str] = []
+        for idx, pkg in enumerate(ordered_packages, start=1):
+            console.print(f"[cyan][verify {idx}/{len(ordered_packages)}][/cyan] {pkg}")
+            installed, detail = is_tlmgr_package_installed(tlmgr_cmd, pkg, installed_check_timeout)
+            if installed:
+                console.print(f"  [green]OK[/green] {pkg}")
+            else:
+                missing.append(pkg)
+                console.print(f"  [red]MISSING[/red] {pkg}: {detail}")
+        if missing:
+            console.print("\n[bold red]Verification failed.[/bold red]")
+            console.print("[red]Missing packages:[/red]")
+            for pkg in missing:
+                console.print(f"  - {pkg}")
+            raise typer.Exit(code=1)
+        console.print("\n[bold green]Verification successful: all packages are installed.[/bold green]")
         return
 
     console.print(
@@ -316,6 +341,23 @@ def main(
             console.print("[blue]Skipped/already installed:[/blue]")
             for item in skipped:
                 console.print(f"  - {item.package}: {item.detail}")
+        raise typer.Exit(code=1)
+
+    console.print("\n[bold]Final verification...[/bold]")
+    missing_after_install: list[str] = []
+    for idx, pkg in enumerate(ordered_packages, start=1):
+        installed, detail = is_tlmgr_package_installed(tlmgr_cmd, pkg, installed_check_timeout)
+        if not installed:
+            missing_after_install.append(pkg)
+            console.print(f"[red][verify {idx}/{len(ordered_packages)}] MISSING[/red] {pkg}: {detail}")
+        else:
+            console.print(f"[green][verify {idx}/{len(ordered_packages)}] OK[/green] {pkg}")
+
+    if missing_after_install:
+        console.print("\n[bold red]Install finished but verification failed.[/bold red]")
+        console.print("[red]Still missing:[/red]")
+        for pkg in missing_after_install:
+            console.print(f"  - {pkg}")
         raise typer.Exit(code=1)
 
     if skipped:
