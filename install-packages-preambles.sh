@@ -153,22 +153,14 @@ requested_candidates=(
 )
 
 log "Resolving user-requested extra package names..."
-unavailable_requested=()
 for req in "${requested_candidates[@]}"; do
   mapped_req="$(resolve_tlmgr_candidate "$req")"
-  if tlmgr info "$mapped_req" >/dev/null 2>&1; then
-    add_unique resolved_tl_pkgs "$mapped_req"
-    log "[requested] ${req} -> ${mapped_req}"
-  else
-    add_unique unavailable_requested "$req"
-    log "[requested] unavailable in tlmgr repo: ${req}"
-  fi
+  add_unique resolved_tl_pkgs "$mapped_req"
+  log "[requested] ${req} -> ${mapped_req}"
 done
 
 # Optional but often needed with fontspec workflows.
-if tlmgr info xetex >/dev/null 2>&1; then
-  add_unique resolved_tl_pkgs "xetex"
-fi
+add_unique resolved_tl_pkgs "xetex"
 
 if [[ ${#resolved_tl_pkgs[@]} -eq 0 ]]; then
   echo "Error: failed to resolve TeX Live package names." >&2
@@ -185,12 +177,6 @@ if [[ ${#unresolved_latex_pkgs[@]} -gt 0 ]]; then
   echo
   echo "Warning: could not auto-resolve these LaTeX package names (check manually if compile fails):" >&2
   printf '  %s\n' "${unresolved_latex_pkgs[@]}" >&2
-fi
-
-if [[ ${#unavailable_requested[@]} -gt 0 ]]; then
-  echo
-  echo "Warning: user-requested names unavailable in current tlmgr repository:" >&2
-  printf '  %s\n' "${unavailable_requested[@]}" >&2
 fi
 
 echo
