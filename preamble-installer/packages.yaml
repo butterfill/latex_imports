@@ -6,6 +6,7 @@ settings:
     - "../minimal_doc.tex"
   tlmgr_command: "tlmgr"
   install_timeout_seconds: 180
+  installed_check_timeout_seconds: 25
   repository_switch_timeout_seconds: 45
   auto_switch_repository_on_tlpdb_error: true
   tlmgr_repositories:

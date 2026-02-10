@@ -18,6 +18,7 @@ This installer:
 - maps names via `packages.yaml`
 - installs with per-package progress and timeout handling
 - can auto-switch `tlmgr` mirrors on `texlive.tlpdb` repository errors
+- skips already-installed packages and re-checks install state after timeouts
 - lets you add/remove packages by editing YAML only
 
 ## Edit package definitions

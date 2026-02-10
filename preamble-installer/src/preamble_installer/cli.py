@@ -94,6 +94,30 @@ def run_tlmgr_install(tlmgr_cmd: str, package: str, timeout_seconds: int) -> Ins
     return InstallResult(package=package, status="failed", detail=msg)
 
 
+def is_tlmgr_package_installed(tlmgr_cmd: str, package: str, timeout_seconds: int) -> tuple[bool, str]:
+    cmd = [tlmgr_cmd, "info", "--only-installed", package]
+    try:
+        proc = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            timeout=timeout_seconds,
+            check=False,
+        )
+    except subprocess.TimeoutExpired:
+        return False, f"install-check timed out after {timeout_seconds}s"
+    except FileNotFoundError:
+        return False, f"command not found: {tlmgr_cmd}"
+
+    if proc.returncode == 0:
+        return True, "already installed"
+
+    stderr = (proc.stderr or "").strip()
+    stdout = (proc.stdout or "").strip()
+    msg = stderr if stderr else stdout if stdout else f"exit code {proc.returncode}"
+    return False, msg
+
+
 def run_tlmgr_option_repository(tlmgr_cmd: str, repository: str, timeout_seconds: int) -> tuple[bool, str]:
     cmd = [tlmgr_cmd, "option", "repository", repository]
     try:
@@ -138,6 +162,7 @@ def main(
     tex_globs = settings.get("tex_globs", ["../preamble*.tex", "../minimal_doc.tex"])
     tlmgr_cmd = settings.get("tlmgr_command", "tlmgr")
     install_timeout = timeout if timeout is not None else int(settings.get("install_timeout_seconds", 180))
+    installed_check_timeout = int(settings.get("installed_check_timeout_seconds", 25))
     repo_switch_timeout = int(settings.get("repository_switch_timeout_seconds", 45))
     repositories = settings.get("tlmgr_repositories", [])
     auto_switch_repo = bool(settings.get("auto_switch_repository_on_tlpdb_error", True))
@@ -210,11 +235,20 @@ def main(
 
     failures: list[InstallResult] = []
     timeouts: list[InstallResult] = []
+    skipped: list[InstallResult] = []
     current_repo_index = 0
 
     total = len(ordered_packages)
     for idx, pkg in enumerate(ordered_packages, start=1):
         console.print(f"[cyan][install {idx}/{total}][/cyan] {pkg}")
+        is_installed, installed_detail = is_tlmgr_package_installed(
+            tlmgr_cmd, pkg, installed_check_timeout
+        )
+        if is_installed:
+            skipped.append(InstallResult(package=pkg, status="skipped", detail=installed_detail))
+            console.print(f"  [blue]SKIP[/blue] {pkg}: already installed")
+            continue
+
         result = run_tlmgr_install(tlmgr_cmd, pkg, install_timeout)
 
         if (
@@ -246,8 +280,24 @@ def main(
         if result.status == "ok":
             console.print(f"  [green]OK[/green] {pkg}")
         elif result.status == "timeout":
-            timeouts.append(result)
-            console.print(f"  [red]TIMEOUT[/red] {pkg}: {result.detail}")
+            is_installed_after, installed_after_detail = is_tlmgr_package_installed(
+                tlmgr_cmd, pkg, installed_check_timeout
+            )
+            if is_installed_after:
+                skipped.append(
+                    InstallResult(
+                        package=pkg,
+                        status="skipped",
+                        detail=f"install timed out, but package is installed ({installed_after_detail})",
+                    )
+                )
+                console.print(
+                    "  [yellow]TIMEOUT-BUT-INSTALLED[/yellow] "
+                    f"{pkg}: install timed out, but package is now installed"
+                )
+            else:
+                timeouts.append(result)
+                console.print(f"  [red]TIMEOUT[/red] {pkg}: {result.detail}")
         else:
             failures.append(result)
             console.print(f"  [red]FAILED[/red] {pkg}: {result.detail}")
@@ -262,7 +312,16 @@ def main(
             console.print("[red]Timeouts:[/red]")
             for item in timeouts:
                 console.print(f"  - {item.package}: {item.detail}")
+        if skipped:
+            console.print("[blue]Skipped/already installed:[/blue]")
+            for item in skipped:
+                console.print(f"  - {item.package}: {item.detail}")
         raise typer.Exit(code=1)
+
+    if skipped:
+        console.print("\n[blue]Skipped/already installed:[/blue]")
+        for item in skipped:
+            console.print(f"  - {item.package}: {item.detail}")
 
     console.print("\n[bold green]Install completed successfully.[/bold green]")
 
