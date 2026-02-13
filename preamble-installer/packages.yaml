@@ -94,3 +94,9 @@ extras:
     - footnotehyper
     - unicode-math
     - zapfding
+    - glossaries
+    - glossaries-extra
+    - greek-fontenc
+    - cleveref
+
+
