@@ -7,11 +7,11 @@
 \providecommand{\iemail}{}
 
 \title{\ititle\\\isubtitle}
-\newcommand{\paper@ifblankTF}[3]{\if\relax\detokenize{#1}\relax #2\else #3\fi}
+\newcommand{\paperifblankTF}[3]{\if\relax\detokenize{#1}\relax #2\else #3\fi}
 \newcommand{\paperauthorblock}{%
-  \paper@ifblankTF{\iauthor}{}{\iauthor}%
-  \paper@ifblankTF{\iemail}{}{%
-    \paper@ifblankTF{\iauthor}{}{\\}%
+  \paperifblankTF{\iauthor}{}{\iauthor}%
+  \paperifblankTF{\iemail}{}{%
+    \paperifblankTF{\iauthor}{}{\\}%
     <{\iemail}>%
   }%
 }
