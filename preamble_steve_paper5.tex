@@ -1,17 +1,32 @@
 %!TEX TS-program = xelatex
 %!TEX encoding = UTF-8 Unicode
 
+\providecommand{\ititle}{}
+\providecommand{\isubtitle}{}
+\providecommand{\iauthor}{}
+\providecommand{\iemail}{}
+
 \title{\ititle\\\isubtitle}
-\author{\iauthor\\<{\iemail}>}
+\newcommand{\paper@ifblankTF}[3]{\if\relax\detokenize{#1}\relax #2\else #3\fi}
+\newcommand{\paperauthorblock}{%
+  \paper@ifblankTF{\iauthor}{}{\iauthor}%
+  \paper@ifblankTF{\iemail}{}{%
+    \paper@ifblankTF{\iauthor}{}{\\}%
+    <{\iemail}>%
+  }%
+}
+\author{\paperauthorblock}
 
 \usepackage[\papersize]{geometry} % see geometry.pdf
-\geometry{twoside=false}
-\geometry{headsep=2em} %keep running header away from text
-\geometry{footskip=1cm} %keep page numbers away from text
-\geometry{top=3cm} %increase to 3.5 if use header
-\geometry{left=4cm} %increase to 3.5 if use header
-\geometry{right=4cm} %increase to 3.5 if use header
-\geometry{textheight=22cm}
+\geometry{
+  twoside=false,
+  headsep=2em, %keep running header away from text
+  footskip=1cm, %keep page numbers away from text
+  top=3cm, %increase to 3.5 if use header
+  left=4cm, %increase to 3.5 if use header
+  right=4cm, %increase to 3.5 if use header
+  textheight=22cm
+}
 
 %non-xelatex
 %\usepackage[T1]{fontenc}
@@ -48,9 +63,11 @@
 %hyperlinks and pdf metadata
 %TODO avoid duplication of title & author
 \usepackage{hyperref}
-\hypersetup{pdfborder={0 0 0}}
-\hypersetup{pdfauthor={\iauthor}}
-\hypersetup{pdftitle={\ititle\isubtitle}}
+\hypersetup{
+  pdfborder={0 0 0},
+  pdfauthor={\iauthor},
+  pdftitle={\ititle\isubtitle}
+}
 
 %handles references to labels (e.g. sections) nicely
 \usepackage{cleveref}
@@ -93,7 +110,6 @@
 % multiple paragraphs  in footnote are indented by 1em
 \renewcommand{\hangfootparindent}{1em}
 \setlength{\footnotemargin}{1em}
-\setlength{\footnotesep}{1em}
 \footnotesep 2em
 
 %tables
