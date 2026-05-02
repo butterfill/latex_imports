@@ -28,7 +28,7 @@ uv run preamble-installer --verify-only
 3. Maps LaTeX package names to `tlmgr` package names via YAML mappings.
 4. Adds configured inferred and requested extras.
 5. Installs each package one-by-one with progress and per-package timeout.
-6. If a `texlive.tlpdb` repository error occurs, it switches to the next configured mirror and retries.
+6. If an install fails, it switches to the next configured mirror and retries.
 7. Skips packages already installed (`tlmgr info --only-installed`) and re-checks installation after timeouts.
 8. Runs a final full verification pass so success means all target packages are installed.
 
@@ -43,7 +43,7 @@ Open `packages.yaml` and edit:
 - `settings.install_timeout_seconds`: timeout for each `tlmgr install` call.
 - `settings.installed_check_timeout_seconds`: timeout for installed-state checks.
 - `settings.tlmgr_repositories`: ordered mirror list for `tlmgr option repository`.
-- `settings.auto_switch_repository_on_tlpdb_error`: enable automatic fallback mirror switching.
+- `settings.retry_failed_installs_with_repositories`: enable automatic fallback mirror switching for failed installs.
 - `settings.repository_switch_timeout_seconds`: timeout for mirror switch command.
 
 After edits, verify:

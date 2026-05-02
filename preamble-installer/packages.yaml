@@ -8,7 +8,7 @@ settings:
   install_timeout_seconds: 180
   installed_check_timeout_seconds: 25
   repository_switch_timeout_seconds: 45
-  auto_switch_repository_on_tlpdb_error: true
+  retry_failed_installs_with_repositories: true
   tlmgr_repositories:
     - "https://mirror.ctan.org/systems/texlive/tlnet"
     - "https://ctan.math.illinois.edu/systems/texlive/tlnet"
@@ -98,5 +98,3 @@ extras:
     - glossaries-extra
     - greek-fontenc
     - cleveref
-
-

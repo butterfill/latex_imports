@@ -16,6 +16,7 @@ app = typer.Typer(add_completion=False)
 console = Console()
 
 USEPACKAGE_PATTERN = re.compile(r"\\(?:usepackage|RequirePackage)(?:\[[^\]]*\])?\{([^}]*)\}")
+TLMGR_NAME_PATTERN = re.compile(r"^(?:name|package):\s*(\S+)\s*$", re.MULTILINE)
 
 
 @dataclass
@@ -30,8 +31,20 @@ def is_tlpdb_error(detail: str) -> bool:
     return "texlive.tlpdb" in lowered or "could not get texlive.tlpdb" in lowered
 
 
+def should_retry_with_next_repository(result: InstallResult) -> bool:
+    return result.status == "failed"
+
+
 def strip_comments(line: str) -> str:
-    return re.split(r"(?<!\\\\)%", line, maxsplit=1)[0]
+    escaped = False
+    for idx, char in enumerate(line):
+        if char == "\\":
+            escaped = not escaped
+            continue
+        if char == "%" and not escaped:
+            return line[:idx]
+        escaped = False
+    return line
 
 
 def extract_latex_packages(tex_files: list[Path]) -> list[str]:
@@ -70,8 +83,30 @@ def resolve_tex_files(project_dir: Path, tex_globs: list[str], tex_root: Path | 
     return sorted(tex_files)
 
 
+def completed_process_detail(proc: subprocess.CompletedProcess[str]) -> str:
+    stderr = (proc.stderr or "").strip()
+    stdout = (proc.stdout or "").strip()
+    return stderr if stderr else stdout if stdout else f"exit code {proc.returncode}"
+
+
+def tlmgr_name_from_info_output(output: str) -> str | None:
+    match = TLMGR_NAME_PATTERN.search(output)
+    if match:
+        return match.group(1)
+    stripped = output.strip()
+    return stripped if stripped and "\n" not in stripped else None
+
+
+def tlmgr_command(tlmgr_cmd: str, *args: str) -> list[str]:
+    return [*shlex.split(tlmgr_cmd), *args]
+
+
+def tlmgr_info_command(tlmgr_cmd: str, package: str) -> list[str]:
+    return tlmgr_command(tlmgr_cmd, "info", "--only-installed", package)
+
+
 def run_tlmgr_install(tlmgr_cmd: str, package: str, timeout_seconds: int) -> InstallResult:
-    cmd = [tlmgr_cmd, "install", package]
+    cmd = tlmgr_command(tlmgr_cmd, "install", package)
     try:
         proc = subprocess.run(
             cmd,
@@ -88,14 +123,11 @@ def run_tlmgr_install(tlmgr_cmd: str, package: str, timeout_seconds: int) -> Ins
     if proc.returncode == 0:
         return InstallResult(package=package, status="ok", detail="installed")
 
-    stderr = (proc.stderr or "").strip()
-    stdout = (proc.stdout or "").strip()
-    msg = stderr if stderr else stdout if stdout else f"exit code {proc.returncode}"
-    return InstallResult(package=package, status="failed", detail=msg)
+    return InstallResult(package=package, status="failed", detail=completed_process_detail(proc))
 
 
 def is_tlmgr_package_installed(tlmgr_cmd: str, package: str, timeout_seconds: int) -> tuple[bool, str]:
-    cmd = [tlmgr_cmd, "info", "--only-installed", package]
+    cmd = tlmgr_info_command(tlmgr_cmd, package)
     try:
         proc = subprocess.run(
             cmd,
@@ -109,17 +141,20 @@ def is_tlmgr_package_installed(tlmgr_cmd: str, package: str, timeout_seconds: in
     except FileNotFoundError:
         return False, f"command not found: {tlmgr_cmd}"
 
-    if proc.returncode == 0:
-        return True, "already installed"
+    detail = completed_process_detail(proc)
+    if proc.returncode != 0:
+        return False, detail
 
-    stderr = (proc.stderr or "").strip()
-    stdout = (proc.stdout or "").strip()
-    msg = stderr if stderr else stdout if stdout else f"exit code {proc.returncode}"
-    return False, msg
+    installed_name = tlmgr_name_from_info_output(proc.stdout or "")
+    if installed_name == package:
+        return True, "already installed"
+    if installed_name:
+        return False, f"installed check returned unexpected package {installed_name!r}"
+    return False, detail
 
 
 def run_tlmgr_option_repository(tlmgr_cmd: str, repository: str, timeout_seconds: int) -> tuple[bool, str]:
-    cmd = [tlmgr_cmd, "option", "repository", repository]
+    cmd = tlmgr_command(tlmgr_cmd, "option", "repository", repository)
     try:
         proc = subprocess.run(
             cmd,
@@ -136,10 +171,7 @@ def run_tlmgr_option_repository(tlmgr_cmd: str, repository: str, timeout_seconds
     if proc.returncode == 0:
         return True, "repository updated"
 
-    stderr = (proc.stderr or "").strip()
-    stdout = (proc.stdout or "").strip()
-    msg = stderr if stderr else stdout if stdout else f"exit code {proc.returncode}"
-    return False, msg
+    return False, completed_process_detail(proc)
 
 
 @app.command()
@@ -170,7 +202,12 @@ def main(
     installed_check_timeout = int(settings.get("installed_check_timeout_seconds", 25))
     repo_switch_timeout = int(settings.get("repository_switch_timeout_seconds", 45))
     repositories = settings.get("tlmgr_repositories", [])
-    auto_switch_repo = bool(settings.get("auto_switch_repository_on_tlpdb_error", True))
+    retry_with_repositories = bool(
+        settings.get(
+            "retry_failed_installs_with_repositories",
+            settings.get("auto_switch_repository_on_tlpdb_error", True),
+        )
+    )
 
     latex_to_tlmgr = mappings.get("latex_to_tlmgr", {})
     requested_aliases = mappings.get("requested_aliases", {})
@@ -246,7 +283,7 @@ def main(
         return
 
     console.print(
-        f"\n[bold]Installing with:[/bold] {shlex.join([tlmgr_cmd, 'install', '<pkg>'])} (timeout {install_timeout}s/package)"
+        f"\n[bold]Installing with:[/bold] {shlex.join(tlmgr_command(tlmgr_cmd, 'install', '<pkg>'))} (timeout {install_timeout}s/package)"
     )
 
     if repositories:
@@ -276,31 +313,35 @@ def main(
 
         result = run_tlmgr_install(tlmgr_cmd, pkg, install_timeout)
 
-        if (
-            result.status == "failed"
-            and auto_switch_repo
+        while (
+            should_retry_with_next_repository(result)
+            and retry_with_repositories
             and repositories
-            and is_tlpdb_error(result.detail)
             and current_repo_index + 1 < len(repositories)
         ):
-            switched = False
-            while current_repo_index + 1 < len(repositories):
+            retried = False
+            while not retried and current_repo_index + 1 < len(repositories):
                 current_repo_index += 1
                 next_repo = str(repositories[current_repo_index])
+                reason = (
+                    "Repository error detected"
+                    if is_tlpdb_error(result.detail)
+                    else "Install failed"
+                )
                 console.print(
-                    f"  [yellow]Repository error detected[/yellow]; switching mirror to {next_repo} and retrying {pkg}"
+                    f"  [yellow]{reason}[/yellow]; switching mirror to {next_repo} and retrying {pkg}"
                 )
                 ok, msg = run_tlmgr_option_repository(tlmgr_cmd, next_repo, repo_switch_timeout)
                 if not ok:
                     console.print(f"  [yellow]WARN[/yellow] could not set repository {next_repo}: {msg}")
                     continue
-                switched = True
+                retried = True
                 console.print(f"  [green]OK[/green] repository set to {next_repo}")
                 result = run_tlmgr_install(tlmgr_cmd, pkg, install_timeout)
-                break
 
-            if not switched:
+            if not retried:
                 console.print("  [yellow]WARN[/yellow] no usable fallback repositories remained")
+                break
 
         if result.status == "ok":
             console.print(f"  [green]OK[/green] {pkg}")
